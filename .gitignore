@@ -1,0 +1,9 @@
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+# Diagram tool caches / exports you don't want to version
+*.bkp
+*.drawio.bkp
+.$*
