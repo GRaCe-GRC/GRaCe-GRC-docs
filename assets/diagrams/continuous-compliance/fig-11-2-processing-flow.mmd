@@ -1,0 +1,107 @@
+---
+title: "Continuous Compliance Monitoring and Automated Audit Evidence System: processing flow"
+config:
+  flowchart:
+    wrappingWidth: 420
+---
+flowchart TB
+  subgraph S1[" "]
+    direction LR
+    s1["<b>1. Ingest the published catalog</b><br/><i>Catalog ingestion service</i><br/>Retrieves each approved OSCAL catalog from the Project 1 Catalog service, through an internal API, when a new version is published."]:::stcat
+    s1i0["Project 1: Catalog service (internal)"]:::ext
+    s1i0 --> s1
+  end
+  subgraph S2[" "]
+    direction LR
+    s2["<b>2. Create control configurations</b><br/><i>Catalog ingestion service</i><br/>Creates a configuration for each control in the catalog through the Control config API, in PENDING status."]:::stcat
+    s2o0["Control config API: PENDING configs"]:::api
+    s2 --> s2o0
+  end
+  subgraph S3[" "]
+    direction LR
+    s3["<b>3. Configure controls and connectors</b><br/><i>Compliance reviewers in the Admin console</i><br/>Reviewers select the connector each control needs. If it is PENDING, they provide its settings. The control config then becomes ACTIVE."]:::strev
+    s3i0["Admin console UI: reviewers"]:::api
+    s3i0 --> s3
+    s3o0["Connector API: connector settings"]:::api
+    s3 --> s3o0
+    s3o1["Secrets Manager: connector credentials"]:::api
+    s3 --> s3o1
+    s3o2["Control config API: ACTIVE configs"]:::api
+    s3 --> s3o2
+  end
+  subgraph S4[" "]
+    direction LR
+    s4["<b>4. Start an assessment</b><br/><i>Assessment service</i><br/>A schedule or a reviewer starts a run. The service creates assessments for ACTIVE configs and publishes AssessmentCreated."]:::stdom
+    s4i0["Scheduler or Admin console"]:::ext
+    s4i0 --> s4
+    s4o0["Assessment API: IN_PROGRESS"]:::api
+    s4 --> s4o0
+    s4o1["Queue: AssessmentCreated"]:::q
+    s4 --> s4o1
+  end
+  subgraph S5[" "]
+    direction LR
+    s5["<b>5. Create evidence requests</b><br/><i>Evidence collection service</i><br/>Consumes the event, creates evidence entities (metadata) in REQUESTED status, and publishes EvidenceRequested."]:::stdom
+    s5i0["Queue: AssessmentCreated"]:::q
+    s5i0 --> s5
+    s5o0["Evidence API: REQUESTED"]:::api
+    s5 --> s5o0
+    s5o1["Queue: EvidenceRequested"]:::q
+    s5 --> s5o1
+  end
+  subgraph S6[" "]
+    direction LR
+    s6["<b>6. Collect the evidence</b><br/><i>Evidence engine (AI-assisted)</i><br/>Uses connectors to retrieve evidence; AI helps with unstructured sources. Files go to S3 with a hash and statuses become COLLECTED."]:::steng
+    s6i0["Queue: EvidenceRequested"]:::q
+    s6i0 --> s6
+    s6b0["GitHub, Splunk, Datadog, AWS"]:::ext
+    s6 <--> s6b0
+    s6o0["S3: evidence files with SHA-256 hash"]:::api
+    s6 --> s6o0
+    s6o1["Queue: CollectionCompleted"]:::q
+    s6 --> s6o1
+  end
+  subgraph S7[" "]
+    direction LR
+    s7["<b>7. Validate evidence against controls</b><br/><i>Assessment validation engine (AI-assisted)</i><br/>Deterministic rules test evidence against each control's criteria. AI flags ambiguous cases. Results: PASSED, FAILED, PENDING_REVIEW."]:::steng
+    s7i0["Queue: CollectionCompleted"]:::q
+    s7i0 --> s7
+    s7o0["Assessment service: control results"]:::api
+    s7 --> s7o0
+  end
+  subgraph S8[" "]
+    direction LR
+    s8["<b>8. Review and publish results</b><br/><i>Compliance reviewers and Assessment service</i><br/>Reviewers resolve PENDING_REVIEW items. The completed assessment is published as OSCAL assessment results, and Project 3 is notified."]:::strev
+    s8i0["Admin console UI: reviewers"]:::api
+    s8i0 --> s8
+    s8o0["Assessment API: COMPLETED"]:::api
+    s8 --> s8o0
+    s8o1["Published assessments: OSCAL results"]:::ext
+    s8 --> s8o1
+    s8o2["Queue: AssessmentCompleted"]:::q
+    s8 --> s8o2
+  end
+  S1 --> S2
+  S2 --> S3
+  S3 --> S4
+  S4 --> S5
+  S5 --> S6
+  S6 --> S7
+  S7 --> S8
+  style S1 fill:transparent,stroke:transparent
+  style S2 fill:transparent,stroke:transparent
+  style S3 fill:transparent,stroke:transparent
+  style S4 fill:transparent,stroke:transparent
+  style S5 fill:transparent,stroke:transparent
+  style S6 fill:transparent,stroke:transparent
+  style S7 fill:transparent,stroke:transparent
+  style S8 fill:transparent,stroke:transparent
+  classDef sting fill:#ffffff,stroke:#0f7b5f,stroke-width:2px,color:#111827,text-align:left
+  classDef steng fill:#ffffff,stroke:#6d4fc2,stroke-width:2px,color:#111827,text-align:left
+  classDef strev fill:#ffffff,stroke:#b5472e,stroke-width:2px,color:#111827,text-align:left
+  classDef stcat fill:#ffffff,stroke:#2563a8,stroke-width:2px,color:#111827,text-align:left
+  classDef stdom fill:#ffffff,stroke:#0f7b5f,stroke-width:2px,color:#111827,text-align:left
+  classDef stext fill:#ffffff,stroke:#6b7280,stroke-width:2px,color:#111827,text-align:left
+  classDef q fill:#fff3d6,stroke:#c98a1b,color:#111827
+  classDef api fill:#ffffff,stroke:#b4a3dd,color:#374151
+  classDef ext fill:#eef0f3,stroke:#6b7280,color:#374151

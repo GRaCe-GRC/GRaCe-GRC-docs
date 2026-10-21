@@ -1,0 +1,78 @@
+---
+title: Risk Assessment Compliance Scoring and Reporting Platform
+---
+flowchart TB
+  reviewers["Compliance<br/>Reviewers"]:::ext
+  p2events["Project 2<br/>Assessment events"]:::ext
+  p2svc["Project 2<br/>Assessment service"]:::ext
+  p1svc["Project 1<br/>Catalog service"]:::ext
+
+  subgraph P["Project scope"]
+    subgraph UI["User interface layer"]
+      ui["Admin console UI<br/>Dashboard, remediation, reports"]:::ui
+    end
+    bus[["Event messaging (Amazon SNS and SQS)<br/>Assessment, score, and remediation events"]]:::queue
+    subgraph SVC["Service layer"]
+      acs["Admin console service<br/>Methodology, review, reports"]:::svc
+      asvc["Assessment<br/>service"]:::svc
+      score["Score engine<br/>Risk scoring"]:::eng
+      rem["Remediation service<br/>AI-suggested actions"]:::svc
+      rep["Report service<br/>AI-drafted summaries"]:::svc
+    end
+    subgraph API["Inner API layer"]
+      aapi["Assessment API<br/>Assessment results"]:::api
+      sapi["Score API<br/>Scores, methodology"]:::api
+      rapi["Remediation API<br/>Remediations"]:::api
+      repapi["Report API<br/>Report metadata"]:::api
+    end
+    subgraph SOR["System of records"]
+      adb[("Assessment<br/>database")]:::db
+      sdb[("Score<br/>database")]:::db
+      rdb[("Remediation<br/>database")]:::db
+      repdb[("Report<br/>database")]:::db
+      s3["S3 bucket<br/>Report files"]:::db
+    end
+  end
+
+  published["Published reports<br/>Auditors, management"]:::ext
+  authorities["Regulatory<br/>authorities"]:::ext
+
+  reviewers --> ui
+  ui --> acs
+  acs --> score
+  acs --> rem
+  acs --> rep
+  p2events <--> bus
+  asvc <--> bus
+  score <--> bus
+  rem <--> bus
+  rep <--> bus
+  p2svc --> asvc
+  p1svc --> asvc
+  score --> asvc
+  rem --> asvc
+  asvc --> aapi
+  score --> sapi
+  rem --> rapi
+  rep --> repapi
+  rep --> s3
+  rep --> published
+  rep --> authorities
+  aapi <--> adb
+  sapi <--> sdb
+  rapi <--> rdb
+  repapi <--> repdb
+
+  classDef ext fill:#eef0f3,stroke:#6b7280,color:#111827
+  classDef ui fill:#ffffff,stroke:#8fa8e0,color:#111827
+  classDef svc fill:#ffffff,stroke:#7cc19c,color:#111827
+  classDef eng fill:#ffffff,stroke:#6d4fc2,stroke-width:2px,color:#111827
+  classDef queue fill:#fff3d6,stroke:#c98a1b,color:#111827
+  classDef api fill:#ffffff,stroke:#b4a3dd,color:#111827
+  classDef db fill:#ffffff,stroke:#9aa3b2,color:#111827
+
+  style UI fill:#eef3fc,stroke:#c6d4f2,color:#374151
+  style SVC fill:#eef7f1,stroke:#c4e3d0,color:#374151
+  style API fill:#f4f0fb,stroke:#d9cff0,color:#374151
+  style SOR fill:#f1f3f6,stroke:#d4d8df,color:#374151
+  style P fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151

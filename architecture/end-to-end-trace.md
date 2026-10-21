@@ -1,0 +1,57 @@
+# End-to-end trace
+
+One requirement, HIPAA Security Rule 164.308(a)(4)(i), followed from the regulatory file in
+Project 1 to the OSCAL POA&M in Project 3. Organizations and accounts are fictitious; regulations are real.
+
+**Figure 15.1: One requirement traced through Projects 1, 2 and 3**
+
+<!-- mermaid-source: assets/diagrams/solution/fig-15-1-end-to-end-trace.mmd -->
+```mermaid
+---
+title: "One requirement traced through Projects 1, 2 and 3"
+config:
+  flowchart:
+    wrappingWidth: 360
+---
+flowchart LR
+  subgraph T1["Project 1: regulation to OSCAL catalog"]
+    direction TB
+    a1["<b>regulatory_file FILE-04</b><br/>45 CFR Part 164, Subpart C (eCFR XML)<br/>Retrieved 2027-01-04, stored in S3 with SHA-256<br/>OSCAL back-matter resource"]:::p1
+    a2["<b>regulatory_requirement REQ-02</b><br/>164.308(a)(4)(i) Information access management<br/>Type REQUIRED, extracted by parser<br/>Confidence 0.99, status VERIFIED"]:::p1
+    a3["<b>control_mapping MAP-01</b><br/>REQ-02 intersects with control CTL-01<br/>Proposed by LLM (prompt map-v1.3), confidence 0.88<br/>APPROVED by reviewer REV-01"]:::p1
+    a4["<b>control CTL-01</b><br/>frc-ac-1 Privileged access review, version 2<br/>Parameter frc-ac-1_prm_1 = quarterly<br/>Related NIST SP 800-53: AC-2, AC-6(7)"]:::p1
+    a5["<b>catalog CAT-01</b><br/>Healthcare security controls catalog 1.0.0<br/>Status PUBLISHED, OSCAL 1.1.2<br/>Output: OSCAL catalog (JSON)"]:::p1
+    a1 --> a2 --> a3 --> a4 --> a5
+  end
+  subgraph T2["Project 2: catalog to assessment results"]
+    direction TB
+    b1["<b>control_configuration CFG-01</b><br/>Tests frc-ac-1 from catalog CAT-01<br/>Pass: 0 unreviewed and 0 orphaned accounts<br/>Connectors: Okta, AWS; status ACTIVE"]:::p2
+    b2["<b>assessment ASM-01</b><br/>Q1 2027 scheduled assessment<br/>Four controls, 2027-04-01 to 2027-04-02<br/>Status COMPLETED"]:::p2
+    b3["<b>evidence EV-01, EV-02</b><br/>Okta administrator list; AWS IAM credential report<br/>Collected automatically, stored with SHA-256<br/>OSCAL observations"]:::p2
+    b4["<b>assessment_result RES-01</b><br/>frc-ac-1 FAILED (determined by rules)<br/>Two administrator accounts had no owner<br/>Output: OSCAL assessment results (JSON)"]:::p2
+    b1 --> b2 --> b3 --> b4
+  end
+  subgraph T3["Project 3: results to scores, remediation, and POA&amp;M"]
+    direction TB
+    c1["<b>finding FND-01</b><br/>From RES-01, risk RSK-01 (unauthorized access)<br/>Likelihood 4, impact 5, effectiveness 0.4<br/>Severity HIGH"]:::p3
+    c2["<b>finding_score SC-01 / FND-01</b><br/>Methodology SM-01 1.0: 4 x 5 x (1 - 0.4) = 12.0<br/>Rating HIGH, priority 1<br/>Assessment compliance 50%"]:::p3
+    c3["<b>remediation REM-01</b><br/>Remove orphaned privileged accounts, due 2027-04-16<br/>AI-suggested action reviewed by owner<br/>RESOLVED, then VERIFIED by ASM-02 (RES-05 PASSED)"]:::p3
+    c4["<b>report RPT-03 and submission SUB-01</b><br/>April 2027 continuous monitoring POA&amp;M<br/>APPROVED by REV-04, signed, stored write-once<br/>Output: OSCAL POA&amp;M (JSON); submitted where supported"]:::p3
+    c1 --> c2 --> c3 --> c4
+  end
+  T1 ==>|"CAT-01 → CFG-01<br/>internal service APIs"| T2
+  T2 ==>|"RES-01 → FND-01<br/>internal service APIs"| T3
+  T3 -.->|"REM-01 re-assessment request → ASM-02<br/>closed-loop verification"| T2
+
+  classDef p1 fill:#ffffff,stroke:#7cc19c,color:#111827,text-align:left
+  classDef p2 fill:#ffffff,stroke:#8fa8e0,color:#111827,text-align:left
+  classDef p3 fill:#ffffff,stroke:#b4a3dd,color:#111827,text-align:left
+  style T1 fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151
+  style T2 fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151
+  style T3 fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151
+  linkStyle 10,11 stroke:#2563a8,stroke-width:2px
+  linkStyle 12 stroke:#b5472e,stroke-width:2px
+```
+<!-- /mermaid-source -->
+
+Files: [SVG](../assets/diagrams/solution/fig-15-1-end-to-end-trace.svg) · [PNG](../assets/diagrams/solution/fig-15-1-end-to-end-trace.png) · [Original](../assets/diagrams/solution/fig-15-1-end-to-end-trace.original.png) · [Mermaid source](../assets/diagrams/solution/fig-15-1-end-to-end-trace.mmd)

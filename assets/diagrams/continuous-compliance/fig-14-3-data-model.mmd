@@ -1,0 +1,87 @@
+---
+title: "Complete data model, Project 2: Continuous Compliance Monitoring and Automated Audit Evidence System"
+---
+erDiagram
+
+  control_configuration {
+    uuid id PK
+    varchar control_ref "REF"
+    uuid catalog_ref "REF"
+    varchar catalog_version
+    jsonb test_procedure
+    jsonb evidence_requirements
+    jsonb pass_criteria
+    jsonb exception_criteria
+    jsonb parameter_values
+    varchar frequency
+    enum status
+    uuid configured_by
+    timestamp activated_at
+    timestamp created_at
+  }
+  configuration_connector {
+    uuid config_id PK,FK
+    uuid connector_id PK,FK
+    jsonb query_spec
+  }
+  connector {
+    uuid id PK
+    varchar name
+    enum connector_type
+    text endpoint_url
+    enum auth_method
+    varchar secret_ref
+    varchar access_scope
+    enum status
+    timestamp last_health_check_at
+    timestamp created_at
+  }
+  assessment {
+    uuid id PK
+    uuid oscal_uuid
+    varchar title
+    enum trigger_type
+    uuid trigger_ref "REF"
+    jsonb scope
+    enum status
+    timestamp started_at
+    timestamp completed_at
+    text oscal_results_uri
+    char(64) sha256
+  }
+  assessment_result {
+    uuid id PK
+    uuid assessment_id FK
+    uuid config_id FK
+    varchar control_ref "REF"
+    uuid oscal_finding_uuid
+    enum result
+    enum determined_by
+    text ai_flag_reason
+    uuid reviewer_id
+    timestamp reviewed_at
+    timestamp evaluated_at
+  }
+  evidence {
+    uuid id PK
+    uuid result_id FK
+    uuid connector_id FK
+    uuid oscal_observation_uuid
+    text description
+    enum collection_method
+    text source_reference
+    text s3_uri
+    char(64) sha256
+    varchar media_type
+    bigint size_bytes
+    enum status
+    text error_message
+    timestamp collected_at
+  }
+
+  control_configuration ||--o{ configuration_connector : "uses"
+  connector ||--o{ configuration_connector : "used by"
+  control_configuration ||--o{ assessment_result : "evaluated in"
+  assessment ||--o{ assessment_result : "produces"
+  assessment_result ||--o{ evidence : "supported by"
+  connector ||--o{ evidence : "collects"

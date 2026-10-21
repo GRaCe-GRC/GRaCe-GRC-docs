@@ -1,0 +1,107 @@
+---
+title: "Complete data model, Project 3: Risk Assessment Compliance Scoring and Reporting Platform"
+---
+erDiagram
+
+  scoring_methodology {
+    uuid id PK
+    varchar name
+    varchar version
+    text formula
+    jsonb weights
+    jsonb rating_thresholds
+    enum status
+    date effective_from
+    uuid approved_by
+  }
+  score {
+    uuid id PK
+    uuid methodology_id FK
+    uuid assessment_ref "REF"
+    enum trigger_type
+    decimal overall_score
+    decimal compliance_pct
+    enum risk_rating
+    enum status
+    timestamp computed_at
+  }
+  finding_score {
+    uuid score_id PK,FK
+    uuid finding_id PK,FK
+    decimal risk_score
+    int priority_rank
+  }
+  finding {
+    uuid id PK
+    uuid assessment_ref "REF"
+    uuid result_ref "REF"
+    varchar control_ref "REF"
+    uuid risk_ref "REF"
+    uuid oscal_finding_uuid
+    boolean compliant
+    enum severity
+    smallint likelihood
+    smallint impact
+    decimal control_effectiveness
+    timestamp imported_at
+  }
+  report {
+    uuid id PK
+    uuid score_id FK
+    uuid framework_ref "REF"
+    varchar title
+    int version
+    enum report_type
+    date period_start
+    date period_end
+    text ai_summary
+    enum status
+    uuid approved_by
+    timestamp approved_at
+    text s3_uri
+    char(64) sha256
+    text signature
+    text oscal_results_uri
+    text oscal_poam_uri
+    timestamp generated_at
+  }
+  report_remediation {
+    uuid report_id PK,FK
+    uuid remediation_id PK,FK
+    enum status_at_generation
+  }
+  remediation {
+    uuid id PK
+    uuid finding_id FK
+    uuid oscal_poam_item_uuid
+    varchar title
+    text description
+    text ai_suggested_action
+    varchar owner
+    enum priority
+    date due_date
+    enum status
+    text risk_acceptance_justification
+    timestamp resolved_at
+    uuid verification_assessment_ref "REF"
+    timestamp verified_at
+  }
+  submission {
+    uuid id PK
+    uuid report_id FK
+    uuid authority_ref "REF"
+    enum channel
+    uuid submitted_by
+    timestamp submitted_at
+    enum status
+    varchar receipt_reference
+  }
+
+  scoring_methodology ||--o{ score : "computes"
+  score ||--o{ finding_score : "scores"
+  finding ||--o{ finding_score : "scored in"
+  score ||--o{ report : "basis for"
+  report ||--o{ report_remediation : "lists"
+  remediation ||--o{ report_remediation : "listed in"
+  finding ||--o{ remediation : "remediated by"
+  report ||--o{ submission : "submitted as"

@@ -1,0 +1,79 @@
+---
+title: Continuous Compliance Monitoring and Automated Audit Evidence System
+---
+flowchart TB
+  reviewers["Compliance<br/>Reviewers"]:::ext
+  p1["Project 1<br/>Catalog service"]:::ext
+
+  subgraph P["Project scope"]
+    subgraph UI["User interface layer"]
+      ui["Admin console UI<br/>Configuration and review"]:::ui
+    end
+    bus[["Event messaging (Amazon SNS and SQS)<br/>Topics fan out events to subscriber queues"]]:::queue
+    subgraph SVC["Service layer"]
+      acs["Admin console service<br/>Configuration, review"]:::svc
+      val["Assessment validation<br/>engine (AI-assisted)"]:::eng
+      eveng["Evidence engine<br/>AI-assisted collection"]:::eng
+      cing["Catalog ingestion<br/>service"]:::svc
+      ccs["Control config<br/>service"]:::svc
+      cons["Connector<br/>service"]:::svc
+      asvc["Assessment<br/>service"]:::svc
+      ecs["Evidence collection<br/>service"]:::svc
+    end
+    subgraph API["Inner API layer"]
+      ccapi["Control config API<br/>Control configs"]:::api
+      conapi["Connector API<br/>Connectors"]:::api
+      aapi["Assessment API<br/>Assessments"]:::api
+      eapi["Evidence API<br/>Evidence metadata"]:::api
+    end
+    subgraph SOR["System of records"]
+      ccdb[("Control config<br/>database")]:::db
+      condb[("Connector<br/>database")]:::db
+      adb[("Assessment<br/>database")]:::db
+      edb[("Evidence<br/>database")]:::db
+      s3["S3 bucket<br/>Evidence files"]:::db
+    end
+  end
+
+  sources["Evidence sources<br/>GitHub, Splunk,<br/>Datadog, AWS"]:::ext
+  published["Published assessments<br/>OSCAL results API"]:::ext
+
+  reviewers --> ui
+  ui --> acs
+  acs --> ccs
+  acs --> cons
+  acs --> asvc
+  val <--> bus
+  eveng <--> bus
+  asvc --> bus
+  ecs --> bus
+  val --> asvc
+  val --> ecs
+  eveng --> ecs
+  eveng <--> sources
+  eveng --> s3
+  p1 --> cing
+  cing --> ccapi
+  ccs --> ccapi
+  cons --> conapi
+  asvc --> aapi
+  asvc --> published
+  ecs --> eapi
+  ccapi <--> ccdb
+  conapi <--> condb
+  aapi <--> adb
+  eapi <--> edb
+
+  classDef ext fill:#eef0f3,stroke:#6b7280,color:#111827
+  classDef ui fill:#ffffff,stroke:#8fa8e0,color:#111827
+  classDef svc fill:#ffffff,stroke:#7cc19c,color:#111827
+  classDef eng fill:#ffffff,stroke:#6d4fc2,stroke-width:2px,color:#111827
+  classDef queue fill:#fff3d6,stroke:#c98a1b,color:#111827
+  classDef api fill:#ffffff,stroke:#b4a3dd,color:#111827
+  classDef db fill:#ffffff,stroke:#9aa3b2,color:#111827
+
+  style UI fill:#eef3fc,stroke:#c6d4f2,color:#374151
+  style SVC fill:#eef7f1,stroke:#c4e3d0,color:#374151
+  style API fill:#f4f0fb,stroke:#d9cff0,color:#374151
+  style SOR fill:#f1f3f6,stroke:#d4d8df,color:#374151
+  style P fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151

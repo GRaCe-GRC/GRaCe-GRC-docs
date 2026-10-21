@@ -1,0 +1,81 @@
+---
+title: "Federated Regulatory Control Mapping System: processing flow"
+config:
+  flowchart:
+    wrappingWidth: 420
+---
+flowchart TB
+  subgraph S1[" "]
+    direction LR
+    s1["<b>1. Acquire regulatory files</b><br/><i>Regulatory ingestion service</i><br/>Retrieves files from regulatory sources on a schedule, or receives files that regulatory entities publish to its API."]:::sting
+    s1b0["Regulatory entities (pull or push)"]:::ext
+    s1 <--> s1b0
+  end
+  subgraph S2[" "]
+    direction LR
+    s2["<b>2. Store the file and announce it</b><br/><i>Regulatory ingestion service</i><br/>Saves file metadata through the Regulatory API, stores the original file in S3, and publishes a RegulationIngested event."]:::sting
+    s2o0["Regulatory API: file metadata"]:::api
+    s2 --> s2o0
+    s2o1["S3: original regulatory file"]:::api
+    s2 --> s2o1
+    s2o2["Queue: RegulationIngested"]:::q
+    s2 --> s2o2
+  end
+  subgraph S3[" "]
+    direction LR
+    s3["<b>3. Propose controls with RAG and AI</b><br/><i>Regulatory engine</i><br/>Consumes the event, retrieves related text with RAG, and uses an LLM to draft controls and control mappings in PENDING status."]:::steng
+    s3i0["Queue: RegulationIngested"]:::q
+    s3i0 --> s3
+    s3o0["Control API: PENDING controls"]:::api
+    s3 --> s3o0
+    s3o1["Control mapping API: PENDING mappings"]:::api
+    s3 --> s3o1
+  end
+  subgraph S4[" "]
+    direction LR
+    s4["<b>4. Expert review</b><br/><i>Compliance reviewers in the Admin console</i><br/>Reviewers examine each proposed control and control mapping and approve or deny it. Denied items are kept for the audit trail."]:::strev
+    s4i0["Admin console UI: reviewers"]:::api
+    s4i0 --> s4
+    s4o0["Control API: APPROVED or REJECTED"]:::api
+    s4 --> s4o0
+    s4o1["Control mapping API: APPROVED or REJECTED"]:::api
+    s4 --> s4o1
+  end
+  subgraph S5[" "]
+    direction LR
+    s5["<b>5. Signal that review is complete</b><br/><i>Regulatory engine</i><br/>Once every proposed item for the regulatory file has a decision, the engine publishes a ReviewCompleted event."]:::steng
+    s5o0["Queue: ReviewCompleted"]:::q
+    s5 --> s5o0
+  end
+  subgraph S6[" "]
+    direction LR
+    s6["<b>6. Publish the OSCAL catalog</b><br/><i>Catalog service</i><br/>Consumes the event, saves catalog metadata through the Catalog API, uploads the OSCAL file to S3, and adds it to Published catalogs."]:::stcat
+    s6i0["Queue: ReviewCompleted"]:::q
+    s6i0 --> s6
+    s6o0["Catalog API: catalog metadata"]:::api
+    s6 --> s6o0
+    s6o1["S3: OSCAL catalog file"]:::api
+    s6 --> s6o1
+    s6o2["Published catalogs: OSCAL catalog API"]:::ext
+    s6 --> s6o2
+  end
+  S1 --> S2
+  S2 --> S3
+  S3 --> S4
+  S4 --> S5
+  S5 --> S6
+  style S1 fill:transparent,stroke:transparent
+  style S2 fill:transparent,stroke:transparent
+  style S3 fill:transparent,stroke:transparent
+  style S4 fill:transparent,stroke:transparent
+  style S5 fill:transparent,stroke:transparent
+  style S6 fill:transparent,stroke:transparent
+  classDef sting fill:#ffffff,stroke:#0f7b5f,stroke-width:2px,color:#111827,text-align:left
+  classDef steng fill:#ffffff,stroke:#6d4fc2,stroke-width:2px,color:#111827,text-align:left
+  classDef strev fill:#ffffff,stroke:#b5472e,stroke-width:2px,color:#111827,text-align:left
+  classDef stcat fill:#ffffff,stroke:#2563a8,stroke-width:2px,color:#111827,text-align:left
+  classDef stdom fill:#ffffff,stroke:#0f7b5f,stroke-width:2px,color:#111827,text-align:left
+  classDef stext fill:#ffffff,stroke:#6b7280,stroke-width:2px,color:#111827,text-align:left
+  classDef q fill:#fff3d6,stroke:#c98a1b,color:#111827
+  classDef api fill:#ffffff,stroke:#b4a3dd,color:#374151
+  classDef ext fill:#eef0f3,stroke:#6b7280,color:#374151

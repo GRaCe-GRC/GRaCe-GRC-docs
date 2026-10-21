@@ -1,0 +1,351 @@
+---
+title: "Complete data model, Projects 1, 2 and 3 (REF = identifier of an entity in another project)"
+---
+erDiagram
+
+  regulatory_authority {
+    uuid id PK
+    varchar name
+    varchar abbreviation
+    enum authority_type
+    varchar jurisdiction
+    text website_url
+    timestamp created_at
+    timestamp updated_at
+  }
+  regulatory_framework {
+    uuid id PK
+    uuid authority_id FK
+    varchar name
+    varchar short_name
+    varchar citation
+    enum framework_type
+    varchar sector
+    enum status
+    date effective_date
+    timestamp created_at
+  }
+  regulatory_file {
+    uuid id PK
+    uuid framework_id FK
+    uuid supersedes_file_id FK
+    varchar title
+    text source_url
+    enum source_format
+    enum acquisition_method
+    varchar version_label
+    date publication_date
+    date effective_date
+    text s3_uri
+    char(64) sha256
+    bigint size_bytes
+    uuid oscal_resource_uuid
+    enum processing_status
+    timestamp ingested_at
+  }
+  regulatory_requirement {
+    uuid id PK
+    uuid file_id FK
+    uuid parent_requirement_id FK
+    varchar provision_ref
+    varchar heading
+    text text
+    enum requirement_type
+    varchar source_anchor
+    enum extraction_method
+    decimal extraction_confidence
+    enum status
+    timestamp created_at
+  }
+  catalog {
+    uuid id PK
+    uuid previous_catalog_id FK
+    uuid oscal_uuid
+    varchar title
+    varchar version
+    varchar oscal_version
+    enum status
+    timestamp published_at
+    timestamp last_modified
+    text s3_uri
+    char(64) sha256
+  }
+  catalog_control {
+    uuid catalog_id PK,FK
+    uuid control_id PK,FK
+    int control_version
+  }
+  catalog_resource {
+    uuid catalog_id PK,FK
+    uuid file_id PK,FK
+    uuid resource_uuid
+  }
+  control_group {
+    uuid id PK
+    uuid parent_group_id FK
+    varchar oscal_group_id
+    varchar title
+    varchar class
+  }
+  control {
+    uuid id PK
+    uuid group_id FK
+    uuid parent_control_id FK
+    varchar oscal_control_id
+    varchar title
+    varchar class
+    int version
+    text statement_prose
+    text guidance_prose
+    text objective_prose
+    enum[] assessment_methods
+    text expected_evidence
+    jsonb related_controls
+    enum origin
+    enum status
+    uuid approved_by
+    timestamp approved_at
+    timestamp created_at
+  }
+  control_parameter {
+    uuid id PK
+    uuid control_id FK
+    varchar oscal_param_id
+    varchar label
+    text guidelines
+    varchar default_value
+    jsonb select_choices
+  }
+  control_mapping {
+    uuid id PK
+    uuid requirement_id FK
+    uuid control_id FK
+    uuid risk_id FK
+    enum relationship_type
+    enum rationale_type
+    text rationale_text
+    varchar ai_model
+    varchar prompt_version
+    decimal confidence_score
+    jsonb retrieved_context
+    enum status
+    uuid reviewer_id
+    timestamp reviewed_at
+    text review_comment
+    timestamp created_at
+  }
+  risk {
+    uuid id PK
+    varchar code
+    varchar title
+    text description
+    enum category
+    smallint default_likelihood
+    smallint default_impact
+    enum status
+    timestamp created_at
+  }
+
+  control_configuration {
+    uuid id PK
+    varchar control_ref "REF"
+    uuid catalog_ref "REF"
+    varchar catalog_version
+    jsonb test_procedure
+    jsonb evidence_requirements
+    jsonb pass_criteria
+    jsonb exception_criteria
+    jsonb parameter_values
+    varchar frequency
+    enum status
+    uuid configured_by
+    timestamp activated_at
+    timestamp created_at
+  }
+  configuration_connector {
+    uuid config_id PK,FK
+    uuid connector_id PK,FK
+    jsonb query_spec
+  }
+  connector {
+    uuid id PK
+    varchar name
+    enum connector_type
+    text endpoint_url
+    enum auth_method
+    varchar secret_ref
+    varchar access_scope
+    enum status
+    timestamp last_health_check_at
+    timestamp created_at
+  }
+  assessment {
+    uuid id PK
+    uuid oscal_uuid
+    varchar title
+    enum trigger_type
+    uuid trigger_ref "REF"
+    jsonb scope
+    enum status
+    timestamp started_at
+    timestamp completed_at
+    text oscal_results_uri
+    char(64) sha256
+  }
+  assessment_result {
+    uuid id PK
+    uuid assessment_id FK
+    uuid config_id FK
+    varchar control_ref "REF"
+    uuid oscal_finding_uuid
+    enum result
+    enum determined_by
+    text ai_flag_reason
+    uuid reviewer_id
+    timestamp reviewed_at
+    timestamp evaluated_at
+  }
+  evidence {
+    uuid id PK
+    uuid result_id FK
+    uuid connector_id FK
+    uuid oscal_observation_uuid
+    text description
+    enum collection_method
+    text source_reference
+    text s3_uri
+    char(64) sha256
+    varchar media_type
+    bigint size_bytes
+    enum status
+    text error_message
+    timestamp collected_at
+  }
+
+  scoring_methodology {
+    uuid id PK
+    varchar name
+    varchar version
+    text formula
+    jsonb weights
+    jsonb rating_thresholds
+    enum status
+    date effective_from
+    uuid approved_by
+  }
+  score {
+    uuid id PK
+    uuid methodology_id FK
+    uuid assessment_ref "REF"
+    enum trigger_type
+    decimal overall_score
+    decimal compliance_pct
+    enum risk_rating
+    enum status
+    timestamp computed_at
+  }
+  finding_score {
+    uuid score_id PK,FK
+    uuid finding_id PK,FK
+    decimal risk_score
+    int priority_rank
+  }
+  finding {
+    uuid id PK
+    uuid assessment_ref "REF"
+    uuid result_ref "REF"
+    varchar control_ref "REF"
+    uuid risk_ref "REF"
+    uuid oscal_finding_uuid
+    boolean compliant
+    enum severity
+    smallint likelihood
+    smallint impact
+    decimal control_effectiveness
+    timestamp imported_at
+  }
+  report {
+    uuid id PK
+    uuid score_id FK
+    uuid framework_ref "REF"
+    varchar title
+    int version
+    enum report_type
+    date period_start
+    date period_end
+    text ai_summary
+    enum status
+    uuid approved_by
+    timestamp approved_at
+    text s3_uri
+    char(64) sha256
+    text signature
+    text oscal_results_uri
+    text oscal_poam_uri
+    timestamp generated_at
+  }
+  report_remediation {
+    uuid report_id PK,FK
+    uuid remediation_id PK,FK
+    enum status_at_generation
+  }
+  remediation {
+    uuid id PK
+    uuid finding_id FK
+    uuid oscal_poam_item_uuid
+    varchar title
+    text description
+    text ai_suggested_action
+    varchar owner
+    enum priority
+    date due_date
+    enum status
+    text risk_acceptance_justification
+    timestamp resolved_at
+    uuid verification_assessment_ref "REF"
+    timestamp verified_at
+  }
+  submission {
+    uuid id PK
+    uuid report_id FK
+    uuid authority_ref "REF"
+    enum channel
+    uuid submitted_by
+    timestamp submitted_at
+    enum status
+    varchar receipt_reference
+  }
+
+  regulatory_authority ||--o{ regulatory_framework : "issues"
+  regulatory_framework ||--o{ regulatory_file : "published as"
+  regulatory_file ||--o{ regulatory_file : "supersedes"
+  regulatory_file ||--o{ regulatory_requirement : "contains"
+  regulatory_requirement ||--o{ regulatory_requirement : "parent of"
+  regulatory_file ||--o{ catalog_resource : "referenced by"
+  catalog ||--o{ catalog_resource : "has"
+  catalog ||--o{ catalog : "previous version"
+  catalog ||--o{ catalog_control : "includes"
+  control ||--o{ catalog_control : "included in"
+  control_group ||--o{ control_group : "parent of"
+  control_group ||--o{ control : "groups"
+  control ||--o{ control : "enhancements"
+  control ||--o{ control_parameter : "has"
+  regulatory_requirement ||--o{ control_mapping : "mapped by"
+  control ||--o{ control_mapping : "maps"
+  risk ||--o{ control_mapping : "addressed by"
+
+  control_configuration ||--o{ configuration_connector : "uses"
+  connector ||--o{ configuration_connector : "used by"
+  control_configuration ||--o{ assessment_result : "evaluated in"
+  assessment ||--o{ assessment_result : "produces"
+  assessment_result ||--o{ evidence : "supported by"
+  connector ||--o{ evidence : "collects"
+
+  scoring_methodology ||--o{ score : "computes"
+  score ||--o{ finding_score : "scores"
+  finding ||--o{ finding_score : "scored in"
+  score ||--o{ report : "basis for"
+  report ||--o{ report_remediation : "lists"
+  remediation ||--o{ report_remediation : "listed in"
+  finding ||--o{ remediation : "remediated by"
+  report ||--o{ submission : "submitted as"
