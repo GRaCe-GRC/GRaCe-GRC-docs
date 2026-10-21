@@ -1,26 +1,37 @@
 # GRaCe-GRC Documentation Hub
 
-Architecture, flows and decisions for the GRaCe-GRC platform.
+Architecture, processing flows, data model and decisions for the GRaCe-GRC platform.
 
 ## Start here
 | Section | What's in it |
 |---|---|
-| [Architecture](architecture/README.md) | System context, containers, deployment |
-| [Systems](systems/) | One page per initiative, with components and key flows |
-| [Flows](flows/README.md) | End-to-end sequence and data-flow diagrams |
+| [Solution architecture](architecture/README.md) | How the three projects fit together |
+| [Roadmap](architecture/roadmap.md) | Phased timeline and the solution at the end of each phase |
+| [End-to-end trace](architecture/end-to-end-trace.md) | One requirement followed through all three projects |
+| [Data model](data-model/README.md) | Simplified and complete data models |
 | [ADRs](adr/README.md) | Architecture Decision Records |
 | [Glossary](glossary.md) | GRC and platform terms |
 
 ## Systems
-- [Federated Regulatory Control Mapping System](systems/control-mapping/README.md)
-- [Continuous Compliance Monitoring and Automated Audit Evidence System](systems/continuous-compliance/README.md)
-- [Risk Assessment Compliance Scoring and Reporting Platform](systems/risk-reporting/README.md)
+| Project | Architecture, processing flow and data model |
+|---|---|
+| 1 | [Federated Regulatory Control Mapping System](systems/control-mapping/README.md) |
+| 2 | [Continuous Compliance Monitoring and Automated Audit Evidence System](systems/continuous-compliance/README.md) |
+| 3 | [Risk Assessment Compliance Scoring and Reporting Platform](systems/risk-reporting/README.md) |
 
-## Conventions
-- Diagrams are written in **Mermaid** inside Markdown, so GitHub renders them and changes are reviewable in pull requests.
-- Architecture views follow the **C4 model**: context → containers → components.
-- Significant decisions get an ADR (copy `adr/0000-template.md`).
-- **This repository is public.** Keep hostnames, IPs, network topology, secrets flows and anything else that helps an attacker out of it.
+## Diagrams
+Every diagram lives in [`assets/diagrams/`](assets/diagrams/) in four forms:
+
+| File | Purpose |
+|---|---|
+| `*.mmd` | Mermaid source: **the file you edit** |
+| `*.svg`, `*.png` | Rendered from the `.mmd` by `scripts/build-diagrams.sh` |
+| `*.original.png` | The original figure, kept for reference |
+
+Markdown pages embed the Mermaid so GitHub renders it. After editing a `.mmd`, run
+`scripts/build-diagrams.sh` to regenerate the SVG and PNG and update the embedded copies.
+
+> **This repository is public.** Keep hostnames, account IDs, network details and secrets flows out of it.
 
 ## License
 Content in this repository is licensed under [CC BY 4.0](LICENSE).

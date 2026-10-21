@@ -1,0 +1,98 @@
+---
+title: "Projects 1 and 2 combined"
+---
+flowchart LR
+  regulators["Regulatory<br/>Regulatory entities"]:::ext
+  reviewers["Compliance<br/>Reviewers"]:::ext
+  pubcat["Published<br/>catalogs API"]:::api
+  extorgs["External<br/>organizations"]:::ext
+  pubassess["Published assessments<br/>Auditors, GRC tools"]:::ext
+  sources["Evidence sources<br/>GitHub, Splunk,<br/>Datadog, AWS"]:::ext
+
+  subgraph P1["Project 1 · Federated Regulatory Control Mapping System"]
+    direction TB
+    subgraph P1UI["User interface layer"]
+      p1ui["Admin console UI"]:::ui
+    end
+    p1q[["Event queue (Amazon SQS)"]]:::queue
+    subgraph P1SVC["Service layer"]
+      p1ing["Regulatory ingestion service"]:::svc
+      p1eng["Regulatory engine (AI)"]:::eng
+      p1cat["Catalog service"]:::svc
+      p1acs["Admin console service"]:::svc
+    end
+    subgraph P1API["Inner API layer"]
+      p1a1["Control API"]:::api
+      p1a2["Control mapping API"]:::api
+      p1a3["Regulatory API"]:::api
+      p1a4["Catalog API"]:::api
+    end
+    subgraph P1SOR["System of records"]
+      p1d1[("Controls database")]:::db
+      p1d2[("Regulatory database")]:::db
+      p1d3[("Catalog database")]:::db
+      p1d4["S3 bucket"]:::db
+    end
+    P1UI ~~~ p1q ~~~ P1SVC ~~~ P1API ~~~ P1SOR
+  end
+
+  subgraph P2["Project 2 · Continuous Compliance Monitoring and Automated Audit Evidence System"]
+    direction TB
+    subgraph P2UI["User interface layer"]
+      p2ui["Admin console UI"]:::ui
+    end
+    p2q[["Event messaging (Amazon SNS and SQS)"]]:::queue
+    subgraph P2SVC["Service layer"]
+      p2cing["Catalog ingestion service"]:::svc
+      p2ccs["Control config service"]:::svc
+      p2con["Connector service"]:::svc
+      p2as["Assessment service"]:::svc
+      p2ecs["Evidence collection service"]:::svc
+      p2ee["Evidence engine (AI)"]:::eng
+      p2acs["Admin console service"]:::svc
+      p2val["Assessment validation engine"]:::eng
+    end
+    subgraph P2API["Inner API layer"]
+      p2a1["Control config API"]:::api
+      p2a2["Connector API"]:::api
+      p2a3["Assessment API"]:::api
+      p2a4["Evidence API"]:::api
+    end
+    subgraph P2SOR["System of records"]
+      p2d1[("Control config database")]:::db
+      p2d2[("Connector database")]:::db
+      p2d3[("Assessment database")]:::db
+      p2d4[("Evidence database")]:::db
+      p2d5["S3 bucket"]:::db
+    end
+    P2UI ~~~ p2q ~~~ P2SVC ~~~ P2API ~~~ P2SOR
+  end
+
+  reviewers --> P1
+  reviewers --> P2
+  regulators -->|"to Regulatory ingestion service"| P1
+  P1 ==>|"Catalog service → Catalog ingestion service"| P2
+  P1 -->|"Catalog service"| pubcat
+  extorgs --> pubcat
+  P2 -->|"Assessment service"| pubassess
+  P2 <-->|"Evidence engine (AI)"| sources
+  linkStyle 11 stroke:#2563a8,stroke-width:2px
+
+  classDef ext fill:#eef0f3,stroke:#6b7280,color:#111827
+  classDef ui fill:#ffffff,stroke:#8fa8e0,color:#111827
+  classDef svc fill:#ffffff,stroke:#7cc19c,color:#111827
+  classDef eng fill:#ffffff,stroke:#6d4fc2,stroke-width:2px,color:#111827
+  classDef queue fill:#fff3d6,stroke:#c98a1b,color:#111827
+  classDef api fill:#ffffff,stroke:#b4a3dd,color:#111827
+  classDef db fill:#ffffff,stroke:#9aa3b2,color:#111827
+
+  style P1UI fill:#eef3fc,stroke:#c6d4f2,color:#374151
+  style P1SVC fill:#eef7f1,stroke:#c4e3d0,color:#374151
+  style P1API fill:#f4f0fb,stroke:#d9cff0,color:#374151
+  style P1SOR fill:#f1f3f6,stroke:#d4d8df,color:#374151
+  style P2UI fill:#eef3fc,stroke:#c6d4f2,color:#374151
+  style P2SVC fill:#eef7f1,stroke:#c4e3d0,color:#374151
+  style P2API fill:#f4f0fb,stroke:#d9cff0,color:#374151
+  style P2SOR fill:#f1f3f6,stroke:#d4d8df,color:#374151
+  style P1 fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151
+  style P2 fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151

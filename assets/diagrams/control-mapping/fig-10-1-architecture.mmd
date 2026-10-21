@@ -1,0 +1,71 @@
+---
+title: Federated Regulatory Control Mapping System
+---
+flowchart TB
+  reviewers["Compliance<br/>Reviewers"]:::ext
+  regulators["Regulatory<br/>Regulatory entities"]:::ext
+
+  subgraph P["Project scope"]
+    subgraph UI["User interface layer"]
+      ui["Admin console UI<br/>Review and approval"]:::ui
+    end
+    sqs[["Event queue (Amazon SQS)<br/>Asynchronous events between services"]]:::queue
+    subgraph SVC["Service layer"]
+      acs["Admin console service<br/>Review workflows"]:::svc
+      ing["Regulatory ingestion<br/>service"]:::svc
+      eng["Regulatory engine<br/>RAG and LLM mapping"]:::eng
+      cat["Catalog service<br/>OSCAL publishing"]:::svc
+    end
+    subgraph API["Inner API layer"]
+      capi["Control API<br/>Controls"]:::api
+      mapi["Control mapping API<br/>Mappings"]:::api
+      rapi["Regulatory API<br/>Regulatory files"]:::api
+      catapi["Catalog API<br/>Catalogs"]:::api
+    end
+    subgraph SOR["System of records"]
+      cdb[("Controls database<br/>Controls and control mappings")]:::db
+      rdb[("Regulatory<br/>database")]:::db
+      s3["S3 bucket<br/>Files"]:::db
+      catdb[("Catalog database<br/>Catalog metadata")]:::db
+    end
+  end
+
+  published["Published catalogs<br/>OSCAL catalog API"]:::ext
+  extorgs["External<br/>organizations"]:::ext
+
+  reviewers --> ui
+  ui --> acs
+  regulators --> ing
+  ing --> sqs
+  eng <--> sqs
+  cat <--> sqs
+  acs --> capi
+  acs --> mapi
+  ing --> rapi
+  ing --> s3
+  eng --> capi
+  eng --> mapi
+  eng --> rapi
+  eng --> s3
+  cat --> catapi
+  cat --> s3
+  cat --> published
+  extorgs --> cat
+  capi <--> cdb
+  mapi <--> cdb
+  rapi <--> rdb
+  catapi <--> catdb
+
+  classDef ext fill:#eef0f3,stroke:#6b7280,color:#111827
+  classDef ui fill:#ffffff,stroke:#8fa8e0,color:#111827
+  classDef svc fill:#ffffff,stroke:#7cc19c,color:#111827
+  classDef eng fill:#ffffff,stroke:#6d4fc2,stroke-width:2px,color:#111827
+  classDef queue fill:#fff3d6,stroke:#c98a1b,color:#111827
+  classDef api fill:#ffffff,stroke:#b4a3dd,color:#111827
+  classDef db fill:#ffffff,stroke:#9aa3b2,color:#111827
+
+  style UI fill:#eef3fc,stroke:#c6d4f2,color:#374151
+  style SVC fill:#eef7f1,stroke:#c4e3d0,color:#374151
+  style API fill:#f4f0fb,stroke:#d9cff0,color:#374151
+  style SOR fill:#f1f3f6,stroke:#d4d8df,color:#374151
+  style P fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151

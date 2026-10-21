@@ -1,0 +1,114 @@
+---
+title: "Complete solution: Projects 1, 2 and 3"
+---
+flowchart LR
+  regulators["Regulatory<br/>entities"]:::ext
+  sources["Evidence<br/>sources"]:::ext
+  authorities["Regulatory<br/>authorities"]:::ext
+  extorgs["External<br/>organizations"]:::ext
+  auditors2["Auditors and<br/>GRC tools"]:::ext
+  auditors3["Auditors and<br/>management"]:::ext
+
+  subgraph P1["Project 1 · Federated Regulatory Control Mapping System"]
+    direction TB
+    subgraph P1UI["User interface layer"]
+      p1ui["Admin console UI (reviewers)"]:::ui
+    end
+    p1q[["Event messaging (SNS and SQS)"]]:::queue
+    subgraph P1SVC["Service layer"]
+      p1ing["Regulatory ingestion service"]:::svc
+      p1eng["Regulatory engine (AI-assisted)"]:::eng
+      p1cat["Catalog service"]:::svc
+      p1acs["Admin console service"]:::svc
+    end
+    subgraph P1SOR["Inner APIs and system of records"]
+      p1sor["4 APIs, 3 databases, S3 bucket"]:::db
+    end
+    subgraph P1PUBI["Published interface"]
+      p1pub["Published catalogs API (OSCAL)"]:::api
+    end
+    P1UI ~~~ p1q ~~~ P1SVC ~~~ P1SOR ~~~ P1PUBI
+  end
+
+  subgraph P2["Project 2 · Continuous Compliance Monitoring and Automated Audit Evidence System"]
+    direction TB
+    subgraph P2UI["User interface layer"]
+      p2ui["Admin console UI (reviewers)"]:::ui
+    end
+    p2q[["Event messaging (SNS and SQS)"]]:::queue
+    subgraph P2SVC["Service layer"]
+      p2cing["Catalog ingestion service"]:::svc
+      p2cc["Control config and connector services"]:::svc
+      p2as["Assessment service"]:::svc
+      p2ecs["Evidence collection service"]:::svc
+      p2ee["Evidence engine (AI-assisted)"]:::eng
+      p2val["Assessment validation engine"]:::eng
+      p2acs["Admin console service"]:::svc
+    end
+    subgraph P2SOR["Inner APIs and system of records"]
+      p2sor["4 APIs, 4 databases, S3 bucket"]:::db
+    end
+    subgraph P2PUBI["Published interface"]
+      p2pub["Published assessments API (OSCAL)"]:::api
+    end
+    P2UI ~~~ p2q ~~~ P2SVC ~~~ P2SOR ~~~ P2PUBI
+  end
+
+  subgraph P3["Project 3 · Risk Assessment Compliance Scoring and Reporting Platform"]
+    direction TB
+    subgraph P3UI["User interface layer"]
+      p3ui["Admin console UI (reviewers)"]:::ui
+    end
+    p3q[["Event messaging (SNS and SQS)"]]:::queue
+    subgraph P3SVC["Service layer"]
+      p3as["Assessment service"]:::svc
+      p3score["Score engine"]:::eng
+      p3rem["Remediation service (AI-assisted)"]:::svc
+      p3rep["Report service (AI-assisted)"]:::svc
+      p3acs["Admin console service"]:::svc
+    end
+    subgraph P3SOR["Inner APIs and system of records"]
+      p3sor["4 APIs, 4 databases, S3 bucket"]:::db
+    end
+    subgraph P3PUBI["Published interface"]
+      p3pub["Published reports API (OSCAL)"]:::api
+    end
+    P3UI ~~~ p3q ~~~ P3SVC ~~~ P3SOR ~~~ P3PUBI
+  end
+
+  regulators -->|"Regulatory ingestion service"| P1
+  P1 ==>|"Catalog service → Catalog ingestion service<br/>(internal API)"| P2
+  P2 ==>|"Assessment service → Assessment service<br/>(AssessmentCompleted)"| P3
+  P1 ==>|"Catalog service → Assessment service<br/>(risk context)"| P3
+  P3 -.->|"Remediation service → Assessment service<br/>closed-loop verification (added in Project 3)"| P2
+  P2 <-->|"Evidence engine"| sources
+  P3 -->|"Report service"| authorities
+  P1 -->|"Published catalogs API"| extorgs
+  P2 -->|"Published assessments API"| auditors2
+  P3 -->|"Published reports API"| auditors3
+  linkStyle 13,14,15 stroke:#2563a8,stroke-width:2px
+  linkStyle 16 stroke:#b5472e,stroke-width:2px
+
+  classDef ext fill:#eef0f3,stroke:#6b7280,color:#111827
+  classDef ui fill:#ffffff,stroke:#8fa8e0,color:#111827
+  classDef svc fill:#ffffff,stroke:#7cc19c,color:#111827
+  classDef eng fill:#ffffff,stroke:#6d4fc2,stroke-width:2px,color:#111827
+  classDef queue fill:#fff3d6,stroke:#c98a1b,color:#111827
+  classDef api fill:#ffffff,stroke:#b4a3dd,color:#111827
+  classDef db fill:#ffffff,stroke:#9aa3b2,color:#111827
+
+  style P1UI fill:#eef3fc,stroke:#c6d4f2,color:#374151
+  style P1SVC fill:#eef7f1,stroke:#c4e3d0,color:#374151
+  style P1SOR fill:#f1f3f6,stroke:#d4d8df,color:#374151
+  style P1PUBI fill:#f4f0fb,stroke:#d9cff0,color:#374151
+  style P2UI fill:#eef3fc,stroke:#c6d4f2,color:#374151
+  style P2SVC fill:#eef7f1,stroke:#c4e3d0,color:#374151
+  style P2SOR fill:#f1f3f6,stroke:#d4d8df,color:#374151
+  style P2PUBI fill:#f4f0fb,stroke:#d9cff0,color:#374151
+  style P3UI fill:#eef3fc,stroke:#c6d4f2,color:#374151
+  style P3SVC fill:#eef7f1,stroke:#c4e3d0,color:#374151
+  style P3SOR fill:#f1f3f6,stroke:#d4d8df,color:#374151
+  style P3PUBI fill:#f4f0fb,stroke:#d9cff0,color:#374151
+  style P1 fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151
+  style P2 fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151
+  style P3 fill:#f8fafc,stroke:#8a94a6,stroke-dasharray:6 4,color:#374151

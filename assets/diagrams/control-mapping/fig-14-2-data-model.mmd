@@ -1,0 +1,165 @@
+---
+title: "Complete data model, Project 1: Federated Regulatory Control Mapping System"
+---
+erDiagram
+
+  regulatory_authority {
+    uuid id PK
+    varchar name
+    varchar abbreviation
+    enum authority_type
+    varchar jurisdiction
+    text website_url
+    timestamp created_at
+    timestamp updated_at
+  }
+  regulatory_framework {
+    uuid id PK
+    uuid authority_id FK
+    varchar name
+    varchar short_name
+    varchar citation
+    enum framework_type
+    varchar sector
+    enum status
+    date effective_date
+    timestamp created_at
+  }
+  regulatory_file {
+    uuid id PK
+    uuid framework_id FK
+    uuid supersedes_file_id FK
+    varchar title
+    text source_url
+    enum source_format
+    enum acquisition_method
+    varchar version_label
+    date publication_date
+    date effective_date
+    text s3_uri
+    char(64) sha256
+    bigint size_bytes
+    uuid oscal_resource_uuid
+    enum processing_status
+    timestamp ingested_at
+  }
+  regulatory_requirement {
+    uuid id PK
+    uuid file_id FK
+    uuid parent_requirement_id FK
+    varchar provision_ref
+    varchar heading
+    text text
+    enum requirement_type
+    varchar source_anchor
+    enum extraction_method
+    decimal extraction_confidence
+    enum status
+    timestamp created_at
+  }
+  catalog {
+    uuid id PK
+    uuid previous_catalog_id FK
+    uuid oscal_uuid
+    varchar title
+    varchar version
+    varchar oscal_version
+    enum status
+    timestamp published_at
+    timestamp last_modified
+    text s3_uri
+    char(64) sha256
+  }
+  catalog_control {
+    uuid catalog_id PK,FK
+    uuid control_id PK,FK
+    int control_version
+  }
+  catalog_resource {
+    uuid catalog_id PK,FK
+    uuid file_id PK,FK
+    uuid resource_uuid
+  }
+  control_group {
+    uuid id PK
+    uuid parent_group_id FK
+    varchar oscal_group_id
+    varchar title
+    varchar class
+  }
+  control {
+    uuid id PK
+    uuid group_id FK
+    uuid parent_control_id FK
+    varchar oscal_control_id
+    varchar title
+    varchar class
+    int version
+    text statement_prose
+    text guidance_prose
+    text objective_prose
+    enum[] assessment_methods
+    text expected_evidence
+    jsonb related_controls
+    enum origin
+    enum status
+    uuid approved_by
+    timestamp approved_at
+    timestamp created_at
+  }
+  control_parameter {
+    uuid id PK
+    uuid control_id FK
+    varchar oscal_param_id
+    varchar label
+    text guidelines
+    varchar default_value
+    jsonb select_choices
+  }
+  control_mapping {
+    uuid id PK
+    uuid requirement_id FK
+    uuid control_id FK
+    uuid risk_id FK
+    enum relationship_type
+    enum rationale_type
+    text rationale_text
+    varchar ai_model
+    varchar prompt_version
+    decimal confidence_score
+    jsonb retrieved_context
+    enum status
+    uuid reviewer_id
+    timestamp reviewed_at
+    text review_comment
+    timestamp created_at
+  }
+  risk {
+    uuid id PK
+    varchar code
+    varchar title
+    text description
+    enum category
+    smallint default_likelihood
+    smallint default_impact
+    enum status
+    timestamp created_at
+  }
+
+  regulatory_authority ||--o{ regulatory_framework : "issues"
+  regulatory_framework ||--o{ regulatory_file : "published as"
+  regulatory_file ||--o{ regulatory_file : "supersedes"
+  regulatory_file ||--o{ regulatory_requirement : "contains"
+  regulatory_requirement ||--o{ regulatory_requirement : "parent of"
+  regulatory_file ||--o{ catalog_resource : "referenced by"
+  catalog ||--o{ catalog_resource : "has"
+  catalog ||--o{ catalog : "previous version"
+  catalog ||--o{ catalog_control : "includes"
+  control ||--o{ catalog_control : "included in"
+  control_group ||--o{ control_group : "parent of"
+  control_group ||--o{ control : "groups"
+  control ||--o{ control : "enhancements"
+  control ||--o{ control_parameter : "has"
+  regulatory_requirement ||--o{ control_mapping : "mapped by"
+  control ||--o{ control_mapping : "maps"
+  risk ||--o{ control_mapping : "addressed by"
