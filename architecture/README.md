@@ -248,3 +248,6 @@ Files: [SVG](../assets/diagrams/solution/fig-11-3-projects-1-2-combined.svg) · 
 - [Project 1 architecture](../systems/control-mapping/README.md#architecture)
 - [Project 2 architecture](../systems/continuous-compliance/README.md#architecture)
 - [Project 3 architecture](../systems/risk-reporting/README.md#architecture)
+
+## Repositories
+The repository for each component is listed in [Repositories](repositories.md).
