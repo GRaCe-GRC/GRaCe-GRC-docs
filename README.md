@@ -9,6 +9,7 @@ Architecture, processing flows, data model and decisions for the GRaCe-GRC platf
 | [Roadmap](architecture/roadmap.md) | Phased timeline and the solution at the end of each phase |
 | [End-to-end trace](architecture/end-to-end-trace.md) | One requirement followed through all three projects |
 | [Data model](data-model/README.md) | Simplified and complete data models |
+| [Repositories](architecture/repositories.md) | Which repository holds each component |
 | [ADRs](adr/README.md) | Architecture Decision Records |
 | [Glossary](glossary.md) | GRC and platform terms |
 

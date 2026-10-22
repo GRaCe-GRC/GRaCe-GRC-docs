@@ -354,5 +354,6 @@ Files: [SVG](../../assets/diagrams/control-mapping/fig-14-2-data-model.svg) · [
 
 ## Related
 - [Solution architecture](../../architecture/README.md)
+- [Repositories](../../architecture/repositories.md): where the code for each component lives
 - [Simplified data model](../../data-model/README.md)
 - [Roadmap](../../architecture/roadmap.md)
