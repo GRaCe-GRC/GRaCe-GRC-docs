@@ -16,8 +16,8 @@ config:
 flowchart LR
   subgraph T1["Project 1: regulation to OSCAL catalog"]
     direction TB
-    a1["<b>regulatory_file FILE-04</b><br/>45 CFR Part 164, Subpart C (eCFR XML)<br/>Retrieved 2027-01-04, stored in S3 with SHA-256<br/>OSCAL back-matter resource"]:::p1
-    a2["<b>regulatory_requirement REQ-02</b><br/>164.308(a)(4)(i) Information access management<br/>Type REQUIRED, extracted by parser<br/>Confidence 0.99, status VERIFIED"]:::p1
+    a1["<b>files FILE-04</b><br/>45 CFR Part 164, Subpart C (eCFR XML)<br/>Retrieved 2027-01-04, stored in S3 with SHA-256<br/>OSCAL back-matter resource"]:::p1
+    a2["<b>requirements REQ-02</b><br/>164.308(a)(4)(i) Information access management<br/>Type REQUIRED, extracted by parser<br/>Confidence 0.99, status VERIFIED"]:::p1
     a3["<b>control_mapping MAP-01</b><br/>REQ-02 intersects with control CTL-01<br/>Proposed by LLM (prompt map-v1.3), confidence 0.88<br/>APPROVED by reviewer REV-01"]:::p1
     a4["<b>control CTL-01</b><br/>frc-ac-1 Privileged access review, version 2<br/>Parameter frc-ac-1_prm_1 = quarterly<br/>Related NIST SP 800-53: AC-2, AC-6(7)"]:::p1
     a5["<b>catalog CAT-01</b><br/>Healthcare security controls catalog 1.0.0<br/>Status PUBLISHED, OSCAL 1.1.2<br/>Output: OSCAL catalog (JSON)"]:::p1

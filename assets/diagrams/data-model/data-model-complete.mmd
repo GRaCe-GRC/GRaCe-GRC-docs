@@ -3,17 +3,15 @@ title: "Complete data model, Projects 1, 2 and 3 (REF = identifier of an entity 
 ---
 erDiagram
 
-  regulatory_authority {
+  authorities {
     uuid id PK
-    varchar name
-    varchar abbreviation
-    enum authority_type
+    varchar name UK
     varchar jurisdiction
-    text website_url
-    timestamp created_at
-    timestamp updated_at
+    timestamptz created_at
+    boolean enabled
+    varchar created_by
   }
-  regulatory_framework {
+  frameworks {
     uuid id PK
     uuid authority_id FK
     varchar name
@@ -25,7 +23,7 @@ erDiagram
     date effective_date
     timestamp created_at
   }
-  regulatory_file {
+  files {
     uuid id PK
     uuid framework_id FK
     uuid supersedes_file_id FK
@@ -43,7 +41,7 @@ erDiagram
     enum processing_status
     timestamp ingested_at
   }
-  regulatory_requirement {
+  requirements {
     uuid id PK
     uuid file_id FK
     uuid parent_requirement_id FK
@@ -316,12 +314,12 @@ erDiagram
     varchar receipt_reference
   }
 
-  regulatory_authority ||--o{ regulatory_framework : "issues"
-  regulatory_framework ||--o{ regulatory_file : "published as"
-  regulatory_file ||--o{ regulatory_file : "supersedes"
-  regulatory_file ||--o{ regulatory_requirement : "contains"
-  regulatory_requirement ||--o{ regulatory_requirement : "parent of"
-  regulatory_file ||--o{ catalog_resource : "referenced by"
+  authorities ||--o{ frameworks : "issues"
+  frameworks ||--o{ files : "published as"
+  files ||--o{ files : "supersedes"
+  files ||--o{ requirements : "contains"
+  requirements ||--o{ requirements : "parent of"
+  files ||--o{ catalog_resource : "referenced by"
   catalog ||--o{ catalog_resource : "has"
   catalog ||--o{ catalog : "previous version"
   catalog ||--o{ catalog_control : "includes"
@@ -330,7 +328,7 @@ erDiagram
   control_group ||--o{ control : "groups"
   control ||--o{ control : "enhancements"
   control ||--o{ control_parameter : "has"
-  regulatory_requirement ||--o{ control_mapping : "mapped by"
+  requirements ||--o{ control_mapping : "mapped by"
   control ||--o{ control_mapping : "maps"
   risk ||--o{ control_mapping : "addressed by"
 
