@@ -3,6 +3,24 @@
 Each project owns its own databases. Links between projects are identifiers (marked **REF**),
 read through the owning project's internal service API, not foreign keys.
 
+## Naming
+- Table names are plural and have no prefix: `authorities`, `frameworks`, `files`, `requirements`.
+- Foreign key columns are the singular table name plus `_id`: `authority_id`, `framework_id`, `file_id`.
+- New tables follow the same rule. Tables of the regulatory database already use it; the other
+  databases are renamed when their tables are built.
+
+## Regulatory database: authorities
+The first table built. It records the regulatory authorities that publish frameworks.
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `uuid` | Primary key |
+| `name` | `varchar(255)` | Required, unique |
+| `jurisdiction` | `varchar(255)` | Required |
+| `created_at` | `timestamptz` | Set on insert, never changed |
+| `enabled` | `boolean` | Required, defaults to `true` |
+| `created_by` | `varchar(255)` | Required, set on insert, never changed |
+
 ## Simplified data model
 
 **Figure 14.1: Simplified data model**
@@ -14,24 +32,24 @@ title: "Simplified data model (attributes are illustrative; dotted lines = refer
 ---
 erDiagram
 
-  regulatory_authority {
+  authorities {
     uuid id PK
     varchar name
     varchar jurisdiction
   }
-  regulatory_framework {
+  frameworks {
     uuid id PK
     uuid authority_id FK
     varchar name
     varchar citation
   }
-  regulatory_file {
+  files {
     uuid id PK
     uuid framework_id FK
     varchar version
     date effective_date
   }
-  regulatory_requirement {
+  requirements {
     uuid id PK
     uuid file_id FK
     varchar provision_ref
@@ -138,10 +156,10 @@ erDiagram
     timestamp submitted_at
   }
 
-  regulatory_authority ||--o{ regulatory_framework : ""
-  regulatory_framework ||--o{ regulatory_file : ""
-  regulatory_file ||--o{ regulatory_requirement : ""
-  regulatory_requirement ||--o{ control_mapping : ""
+  authorities ||--o{ frameworks : ""
+  frameworks ||--o{ files : ""
+  files ||--o{ requirements : ""
+  requirements ||--o{ control_mapping : ""
   control ||--o{ control_mapping : ""
   risk ||--o{ control_mapping : ""
   catalog }o--o{ control : "join table"
@@ -159,7 +177,7 @@ erDiagram
   control ||..o{ control_configuration : "ref across projects"
   assessment_result ||..o{ finding : "ref across projects"
   risk ||..o{ finding : "ref across projects"
-  regulatory_authority ||..o{ submission : "ref across projects"
+  authorities ||..o{ submission : "ref across projects"
   assessment_result ||..o{ remediation : "closed-loop verification"
 ```
 <!-- /mermaid-source -->
@@ -181,5 +199,5 @@ Per project:
 - [Figure 14.3: Project 2](../systems/continuous-compliance/README.md#data-model)
 - [Figure 14.4: Project 3](../systems/risk-reporting/README.md#data-model)
 
-Self-referencing links: `regulatory_file.supersedes_file_id`, `regulatory_requirement.parent_requirement_id`,
+Self-referencing links: `files.supersedes_file_id`, `requirements.parent_requirement_id`,
 `control.parent_control_id` (control enhancements), `control_group.parent_group_id`, `catalog.previous_catalog_id`.

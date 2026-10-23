@@ -3,24 +3,24 @@ title: "Simplified data model (attributes are illustrative; dotted lines = refer
 ---
 erDiagram
 
-  regulatory_authority {
+  authorities {
     uuid id PK
     varchar name
     varchar jurisdiction
   }
-  regulatory_framework {
+  frameworks {
     uuid id PK
     uuid authority_id FK
     varchar name
     varchar citation
   }
-  regulatory_file {
+  files {
     uuid id PK
     uuid framework_id FK
     varchar version
     date effective_date
   }
-  regulatory_requirement {
+  requirements {
     uuid id PK
     uuid file_id FK
     varchar provision_ref
@@ -127,10 +127,10 @@ erDiagram
     timestamp submitted_at
   }
 
-  regulatory_authority ||--o{ regulatory_framework : ""
-  regulatory_framework ||--o{ regulatory_file : ""
-  regulatory_file ||--o{ regulatory_requirement : ""
-  regulatory_requirement ||--o{ control_mapping : ""
+  authorities ||--o{ frameworks : ""
+  frameworks ||--o{ files : ""
+  files ||--o{ requirements : ""
+  requirements ||--o{ control_mapping : ""
   control ||--o{ control_mapping : ""
   risk ||--o{ control_mapping : ""
   catalog }o--o{ control : "join table"
@@ -148,5 +148,5 @@ erDiagram
   control ||..o{ control_configuration : "ref across projects"
   assessment_result ||..o{ finding : "ref across projects"
   risk ||..o{ finding : "ref across projects"
-  regulatory_authority ||..o{ submission : "ref across projects"
+  authorities ||..o{ submission : "ref across projects"
   assessment_result ||..o{ remediation : "closed-loop verification"
