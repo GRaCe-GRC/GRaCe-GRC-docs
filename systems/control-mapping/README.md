@@ -51,6 +51,7 @@ flowchart TB
   cat <--> sqs
   acs --> capi
   acs --> mapi
+  acs --> ing
   ing --> rapi
   ing --> s3
   eng --> capi
@@ -179,6 +180,78 @@ flowchart TB
 <!-- /mermaid-source -->
 
 Files: [SVG](../../assets/diagrams/control-mapping/fig-10-2-processing-flow.svg) · [PNG](../../assets/diagrams/control-mapping/fig-10-2-processing-flow.png) · [Original](../../assets/diagrams/control-mapping/fig-10-2-processing-flow.original.png) · [Mermaid source](../../assets/diagrams/control-mapping/fig-10-2-processing-flow.mmd)
+
+## Listing and creating authorities
+
+The admin console service reads and writes regulatory data through the regulatory ingestion
+service (the edge from Admin console service to Regulatory ingestion service in Figure 10.1). The
+ingestion service calls the Regulatory API, which owns the regulatory database. The admin console
+service is shaped around the console's screens; the ingestion service validates requests and passes
+the Regulatory API's errors through unchanged.
+
+**Figure 10.3: Listing and creating authorities**
+
+<!-- mermaid-source: assets/diagrams/control-mapping/fig-10-3-authorities-sequence.mmd -->
+```mermaid
+---
+title: "Listing and creating authorities"
+---
+sequenceDiagram
+  autonumber
+  actor R as Reviewer
+  participant UI as Admin console UI
+  participant ACS as Admin console service
+  participant ING as Regulatory ingestion service
+  participant API as Regulatory API
+  participant DB as Regulatory database
+
+  Note over R,DB: List authorities (dashboard)
+  R->>UI: Open the dashboard
+  UI->>ACS: Get the authorities for the dashboard
+  ACS->>ING: GET /api/v1/authorities
+  ING->>API: GET /api/v1/authorities
+  API->>DB: Select from authorities
+  DB-->>API: Rows
+  API-->>ING: 200, list of authorities
+  ING-->>ACS: 200, list of authorities
+  ACS-->>UI: Dashboard list
+
+  Note over R,DB: Create an authority
+  R->>UI: Submit name and jurisdiction
+  UI->>ACS: Create authority (name, jurisdiction)
+  ACS->>ING: POST /api/v1/authorities (name, jurisdiction, createdBy)
+  ING->>ING: Validate the request
+  ING->>API: POST /api/v1/authorities
+  API->>DB: Insert into authorities (created_at, enabled = true)
+  DB-->>API: New id
+  API-->>ING: 201, empty body, Location /api/v1/authorities/{id}
+  ING-->>ACS: 201, empty body, Location on the ingestion service
+  ACS-->>UI: Created
+
+  Note over R,DB: Errors
+  alt Invalid fields
+    ING-->>ACS: 400 with an error per field
+  else Duplicate name or unknown id
+    API-->>ING: 409 or 404 problem details
+    ING-->>ACS: The same 409 or 404, unchanged
+  else Regulatory API fails or cannot be reached
+    ING-->>ACS: 502 problem details
+  end
+```
+<!-- /mermaid-source -->
+
+Files: [SVG](../../assets/diagrams/control-mapping/fig-10-3-authorities-sequence.svg) · [PNG](../../assets/diagrams/control-mapping/fig-10-3-authorities-sequence.png) · [Mermaid source](../../assets/diagrams/control-mapping/fig-10-3-authorities-sequence.mmd)
+
+| Call | Success | Errors |
+|---|---|---|
+| `GET /api/v1/authorities` | `200` with the list | `502` if the Regulatory API fails |
+| `GET /api/v1/authorities/{id}` | `200` with the authority | `404` unknown id, `400` malformed id |
+| `POST /api/v1/authorities` | `201`, empty body, `Location` header | `400` invalid fields, `409` duplicate name, `502` |
+
+Errors are RFC 9457 problem details. Contracts: the OpenAPI documents of
+[regulatory-api](https://github.com/GRaCe-GRC/regulatory-api#authorities-api) and
+[regulatory-ingestion-service](https://github.com/GRaCe-GRC/regulatory-ingestion-service#authorities-api)
+(`/v3/api-docs`).
 
 ## Data model
 
