@@ -6,3 +6,4 @@ give it the next number, and open a pull request.
 | # | Title | Status |
 |---|---|---|
 | [0001](0001-docs-as-code-with-mermaid.md) | Docs as code with Markdown and Mermaid | Accepted |
+| [0005](0005-database-migrations-and-local-environment.md) | Database, migrations and local environment | Accepted |
