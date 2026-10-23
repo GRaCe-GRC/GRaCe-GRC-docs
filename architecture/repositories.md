@@ -40,6 +40,13 @@ repositories above are shared with them.
 |---|---|---|
 | [.github](https://github.com/GRaCe-GRC/.github) | Organization profile, community health files, issue and PR templates, reusable workflows; epics and stories | `GRC-` |
 | [GRaCe-GRC-docs](https://github.com/GRaCe-GRC/GRaCe-GRC-docs) | This documentation hub | `DOCS-` |
+| [GRaCe-GRC-sandbox](https://github.com/GRaCe-GRC/GRaCe-GRC-sandbox) | Local development environment (Docker Compose) | `SBX-` |
+
+## Local environment
+[GRaCe-GRC-sandbox](https://github.com/GRaCe-GRC/GRaCe-GRC-sandbox) runs the environment on your machine
+with Docker Compose: today the PostgreSQL databases, and the services as they are added. It does not
+include Amazon SQS, SNS or S3 yet. See its
+[README](https://github.com/GRaCe-GRC/GRaCe-GRC-sandbox#readme) to start it.
 
 ## Related
 - [Solution architecture](README.md)
