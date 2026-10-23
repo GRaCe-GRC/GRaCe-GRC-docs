@@ -91,6 +91,10 @@ flowchart TB
 
 Files: [SVG](../../assets/diagrams/risk-reporting/fig-12-1-architecture.svg) · [PNG](../../assets/diagrams/risk-reporting/fig-12-1-architecture.png) · [Original](../../assets/diagrams/risk-reporting/fig-12-1-architecture.original.png) · [Mermaid source](../../assets/diagrams/risk-reporting/fig-12-1-architecture.mmd)
 
+> **Admin console:** the Admin console UI and Admin console service in this figure are the shared
+> `admin-console-ui` and `admin-console-service`, used by all projects
+> ([ADR 0002](../../adr/0002-shared-admin-console.md)).
+
 ## Processing flow
 
 **Figure 12.2: Proposed processing flow**

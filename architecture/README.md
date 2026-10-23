@@ -10,6 +10,10 @@ Each project follows the same layering: user interface, event messaging, service
 inner APIs and system of records. Each project owns its own databases; projects exchange
 data only through internal service APIs and events, referring to each other's entities by ID.
 
+> **Admin console:** the figures show an admin console UI and service in each project. They are
+> delivered as one shared `admin-console-ui` and one shared `admin-console-service`, with a
+> section per project ([ADR 0002](../adr/0002-shared-admin-console.md)).
+
 ## Complete solution
 
 **Figure 12.3: Complete solution, Projects 1, 2 and 3**
