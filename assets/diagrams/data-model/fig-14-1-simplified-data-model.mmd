@@ -32,13 +32,13 @@ erDiagram
     enum status
     text oscal_file_uri
   }
-  control {
+  controls {
     uuid id PK
     varchar oscal_control_id
     int version
     enum status
   }
-  control_mapping {
+  control_mappings {
     uuid id PK
     uuid requirement_id FK
     uuid control_id FK
@@ -130,10 +130,10 @@ erDiagram
   authorities ||--o{ frameworks : ""
   frameworks ||--o{ files : ""
   files ||--o{ requirements : ""
-  requirements ||--o{ control_mapping : ""
-  control ||--o{ control_mapping : ""
-  risk ||--o{ control_mapping : ""
-  catalog }o--o{ control : "join table"
+  requirements ||--o{ control_mappings : ""
+  controls ||--o{ control_mappings : ""
+  risk ||--o{ control_mappings : ""
+  catalog }o--o{ controls : "join table"
   control_configuration }o--o{ connector : "join table"
   control_configuration ||--o{ assessment_result : ""
   assessment ||--o{ assessment_result : ""
@@ -145,7 +145,7 @@ erDiagram
   report ||--o{ submission : ""
   finding ||--o{ remediation : ""
   report }o--o{ remediation : "join table"
-  control ||..o{ control_configuration : "ref across projects"
+  controls ||..o{ control_configuration : "ref across projects"
   assessment_result ||..o{ finding : "ref across projects"
   risk ||..o{ finding : "ref across projects"
   authorities ||..o{ submission : "ref across projects"
