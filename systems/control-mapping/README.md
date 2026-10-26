@@ -255,6 +255,9 @@ Errors are RFC 9457 problem details. Contracts: the OpenAPI documents of
 
 ## Data model
 
+Figure 14.2 is the target model. The tables built first are the
+[basic model](../../data-model/README.md#basic-model-built-first).
+
 **Figure 14.2: Complete data model, Project 1**
 
 <!-- mermaid-source: assets/diagrams/control-mapping/fig-14-2-data-model.mmd -->
@@ -339,14 +342,14 @@ erDiagram
     uuid file_id PK,FK
     uuid resource_uuid
   }
-  control_group {
+  control_groups {
     uuid id PK
     uuid parent_group_id FK
     varchar oscal_group_id
     varchar title
     varchar class
   }
-  control {
+  controls {
     uuid id PK
     uuid group_id FK
     uuid parent_control_id FK
@@ -366,7 +369,7 @@ erDiagram
     timestamp approved_at
     timestamp created_at
   }
-  control_parameter {
+  control_parameters {
     uuid id PK
     uuid control_id FK
     varchar oscal_param_id
@@ -375,7 +378,7 @@ erDiagram
     varchar default_value
     jsonb select_choices
   }
-  control_mapping {
+  control_mappings {
     uuid id PK
     uuid requirement_id FK
     uuid control_id FK
@@ -414,14 +417,14 @@ erDiagram
   catalog ||--o{ catalog_resource : "has"
   catalog ||--o{ catalog : "previous version"
   catalog ||--o{ catalog_control : "includes"
-  control ||--o{ catalog_control : "included in"
-  control_group ||--o{ control_group : "parent of"
-  control_group ||--o{ control : "groups"
-  control ||--o{ control : "enhancements"
-  control ||--o{ control_parameter : "has"
-  requirements ||--o{ control_mapping : "mapped by"
-  control ||--o{ control_mapping : "maps"
-  risk ||--o{ control_mapping : "addressed by"
+  controls ||--o{ catalog_control : "included in"
+  control_groups ||--o{ control_groups : "parent of"
+  control_groups ||--o{ controls : "groups"
+  controls ||--o{ controls : "enhancements"
+  controls ||--o{ control_parameters : "has"
+  requirements ||--o{ control_mappings : "mapped by"
+  controls ||--o{ control_mappings : "maps"
+  risk ||--o{ control_mappings : "addressed by"
 ```
 <!-- /mermaid-source -->
 

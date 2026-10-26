@@ -21,6 +21,167 @@ The first table built. It records the regulatory authorities that publish framew
 | `enabled` | `boolean` | Required, defaults to `true` |
 | `created_by` | `varchar(255)` | Required, set on insert, never changed |
 
+## Basic model (built first)
+The tables below are what is built first: identifiers, the links between entities and the same
+audit columns as `authorities`. They grow towards the target model (the simplified and complete
+models below) as each entity is mapped to OSCAL.
+
+**Basic model**
+
+<!-- mermaid-source: assets/diagrams/data-model/basic-model.mmd -->
+```mermaid
+---
+title: "Basic model, built first"
+---
+erDiagram
+
+  authorities {
+    uuid id PK
+    varchar name UK
+    varchar jurisdiction
+    boolean enabled
+  }
+  frameworks {
+    uuid id PK
+    uuid authority_id FK
+    varchar name "unique per authority"
+    varchar short_name
+    varchar citation
+    boolean enabled
+  }
+  files {
+    uuid id PK
+    uuid framework_id FK
+    varchar title
+    text source_url
+    varchar version_label
+    date publication_date
+  }
+  requirements {
+    uuid id PK
+    uuid file_id FK
+    uuid parent_requirement_id FK
+    varchar provision_ref "unique per file"
+    varchar heading
+    text text
+  }
+  control_groups {
+    uuid id PK
+    uuid parent_group_id FK
+    varchar group_ref UK
+    varchar title
+  }
+  controls {
+    uuid id PK
+    uuid group_id FK
+    uuid parent_control_id FK
+    varchar control_ref UK
+    varchar title
+    text statement
+  }
+  control_mappings {
+    uuid id PK
+    uuid requirement_id "id only"
+    uuid control_id "id only"
+    text rationale
+  }
+
+  authorities ||--o{ frameworks : "issues"
+  frameworks ||--o{ files : "published as"
+  files ||--o{ requirements : "contains"
+  requirements ||--o{ requirements : "parent of"
+  control_groups ||--o{ control_groups : "parent of"
+  control_groups ||--o{ controls : "groups"
+  controls ||--o{ controls : "enhancements"
+  requirements ||..o{ control_mappings : "mapped by"
+  controls ||..o{ control_mappings : "maps"
+```
+<!-- /mermaid-source -->
+
+Files: [SVG](../assets/diagrams/data-model/basic-model.svg) · [PNG](../assets/diagrams/data-model/basic-model.png) · [Mermaid source](../assets/diagrams/data-model/basic-model.mmd)
+
+Solid lines are foreign keys. Dashed lines are ids across schemas, without foreign keys.
+
+| Database | Schema | Tables | Owner |
+|---|---|---|---|
+| `regulatory` | `public` | `authorities`, `frameworks`, `files`, `requirements` | regulatory-api |
+| `controls` | `controls` | `control_groups`, `controls` | control-api |
+| `controls` | `control_mappings` | `control_mappings` | control-mapping-api |
+
+Deleting a row that still has children returns `409`: an authority with frameworks, a framework
+with files, a file with requirements, a requirement with child requirements, a control group with
+groups or controls, and a control with enhancements.
+
+### frameworks
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `uuid` | Primary key |
+| `authority_id` | `uuid` | Required, references `authorities` |
+| `name` | `varchar(255)` | Required, unique per authority |
+| `short_name` | `varchar(255)` | Optional |
+| `citation` | `varchar(255)` | Optional |
+| `enabled` | `boolean` | Required, defaults to `true` |
+| `created_at` | `timestamptz` | Set on insert, never changed |
+| `created_by` | `varchar(255)` | Required, set on insert, never changed |
+
+### files
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `uuid` | Primary key |
+| `framework_id` | `uuid` | Required, references `frameworks` |
+| `title` | `varchar(255)` | Required |
+| `source_url` | `text` | Optional |
+| `version_label` | `varchar(255)` | Optional |
+| `publication_date` | `date` | Optional |
+| `created_at` | `timestamptz` | Set on insert, never changed |
+| `created_by` | `varchar(255)` | Required, set on insert, never changed |
+
+### requirements
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `uuid` | Primary key |
+| `file_id` | `uuid` | Required, references `files` |
+| `parent_requirement_id` | `uuid` | Optional, references `requirements` |
+| `provision_ref` | `varchar(255)` | Required, unique per file (e.g. `164.308(a)(4)(i)`) |
+| `heading` | `varchar(255)` | Optional |
+| `text` | `text` | Optional |
+| `created_at` | `timestamptz` | Set on insert, never changed |
+| `created_by` | `varchar(255)` | Required, set on insert, never changed |
+
+### control_groups
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `uuid` | Primary key |
+| `parent_group_id` | `uuid` | Optional, references `control_groups` |
+| `group_ref` | `varchar(255)` | Required, unique (e.g. `AC`) |
+| `title` | `varchar(255)` | Required |
+| `created_at` | `timestamptz` | Set on insert, never changed |
+| `created_by` | `varchar(255)` | Required, set on insert, never changed |
+
+### controls
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `uuid` | Primary key |
+| `group_id` | `uuid` | Optional, references `control_groups` |
+| `parent_control_id` | `uuid` | Optional, references `controls` (enhancements) |
+| `control_ref` | `varchar(255)` | Required, unique (e.g. `AC-2`) |
+| `title` | `varchar(255)` | Required |
+| `statement` | `text` | Optional |
+| `created_at` | `timestamptz` | Set on insert, never changed |
+| `created_by` | `varchar(255)` | Required, set on insert, never changed |
+
+### control_mappings
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `uuid` | Primary key |
+| `requirement_id` | `uuid` | Required, id of a row in `requirements` (no foreign key) |
+| `control_id` | `uuid` | Required, id of a row in `controls` (no foreign key) |
+| `rationale` | `text` | Optional |
+| `created_at` | `timestamptz` | Set on insert, never changed |
+| `created_by` | `varchar(255)` | Required, set on insert, never changed |
+
+The pair (`requirement_id`, `control_id`) is unique.
+
 ## Simplified data model
 
 **Figure 14.1: Simplified data model**
@@ -61,13 +222,13 @@ erDiagram
     enum status
     text oscal_file_uri
   }
-  control {
+  controls {
     uuid id PK
     varchar oscal_control_id
     int version
     enum status
   }
-  control_mapping {
+  control_mappings {
     uuid id PK
     uuid requirement_id FK
     uuid control_id FK
@@ -159,10 +320,10 @@ erDiagram
   authorities ||--o{ frameworks : ""
   frameworks ||--o{ files : ""
   files ||--o{ requirements : ""
-  requirements ||--o{ control_mapping : ""
-  control ||--o{ control_mapping : ""
-  risk ||--o{ control_mapping : ""
-  catalog }o--o{ control : "join table"
+  requirements ||--o{ control_mappings : ""
+  controls ||--o{ control_mappings : ""
+  risk ||--o{ control_mappings : ""
+  catalog }o--o{ controls : "join table"
   control_configuration }o--o{ connector : "join table"
   control_configuration ||--o{ assessment_result : ""
   assessment ||--o{ assessment_result : ""
@@ -174,7 +335,7 @@ erDiagram
   report ||--o{ submission : ""
   finding ||--o{ remediation : ""
   report }o--o{ remediation : "join table"
-  control ||..o{ control_configuration : "ref across projects"
+  controls ||..o{ control_configuration : "ref across projects"
   assessment_result ||..o{ finding : "ref across projects"
   risk ||..o{ finding : "ref across projects"
   authorities ||..o{ submission : "ref across projects"
@@ -200,4 +361,4 @@ Per project:
 - [Figure 14.4: Project 3](../systems/risk-reporting/README.md#data-model)
 
 Self-referencing links: `files.supersedes_file_id`, `requirements.parent_requirement_id`,
-`control.parent_control_id` (control enhancements), `control_group.parent_group_id`, `catalog.previous_catalog_id`.
+`controls.parent_control_id` (control enhancements), `control_groups.parent_group_id`, `catalog.previous_catalog_id`.

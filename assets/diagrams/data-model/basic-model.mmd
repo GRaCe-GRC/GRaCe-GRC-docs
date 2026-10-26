@@ -1,0 +1,65 @@
+---
+title: "Basic model, built first"
+---
+erDiagram
+
+  authorities {
+    uuid id PK
+    varchar name UK
+    varchar jurisdiction
+    boolean enabled
+  }
+  frameworks {
+    uuid id PK
+    uuid authority_id FK
+    varchar name "unique per authority"
+    varchar short_name
+    varchar citation
+    boolean enabled
+  }
+  files {
+    uuid id PK
+    uuid framework_id FK
+    varchar title
+    text source_url
+    varchar version_label
+    date publication_date
+  }
+  requirements {
+    uuid id PK
+    uuid file_id FK
+    uuid parent_requirement_id FK
+    varchar provision_ref "unique per file"
+    varchar heading
+    text text
+  }
+  control_groups {
+    uuid id PK
+    uuid parent_group_id FK
+    varchar group_ref UK
+    varchar title
+  }
+  controls {
+    uuid id PK
+    uuid group_id FK
+    uuid parent_control_id FK
+    varchar control_ref UK
+    varchar title
+    text statement
+  }
+  control_mappings {
+    uuid id PK
+    uuid requirement_id "id only"
+    uuid control_id "id only"
+    text rationale
+  }
+
+  authorities ||--o{ frameworks : "issues"
+  frameworks ||--o{ files : "published as"
+  files ||--o{ requirements : "contains"
+  requirements ||--o{ requirements : "parent of"
+  control_groups ||--o{ control_groups : "parent of"
+  control_groups ||--o{ controls : "groups"
+  controls ||--o{ controls : "enhancements"
+  requirements ||..o{ control_mappings : "mapped by"
+  controls ||..o{ control_mappings : "maps"
