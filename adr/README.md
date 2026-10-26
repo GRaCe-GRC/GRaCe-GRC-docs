@@ -10,3 +10,4 @@ give it the next number, and open a pull request.
 | [0003](0003-repositories-are-components.md) | Repositories are components; GitHub Projects are initiatives | Accepted |
 | [0004](0004-licenses.md) | Apache-2.0 for code, CC BY 4.0 for documentation | Accepted |
 | [0005](0005-database-migrations-and-local-environment.md) | Database, migrations and local environment | Accepted |
+| [0006](0006-controls-database-schemas.md) | Controls and control mappings in one database with separate schemas | Accepted |
